@@ -1,5 +1,7 @@
 # Firebase Remote config validator for Pydantic
 
+[![PyPI - Version](https://img.shields.io/pypi/v/pydantic-firebase-remoteconfig)](https://pypi.org/project/pydantic-firebase-remoteconfig/)
+
 A simple Firebase Remote Config binding for Pydantic, using
 remote server configuration only.
 
