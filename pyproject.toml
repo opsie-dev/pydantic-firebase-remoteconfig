@@ -1,4 +1,7 @@
 [project]
+authors = [
+  {name = "Félix Voituret", email = "fvoituret@opsie.dev"},
+]
 name = "pydantic-firebase-remoteconfig"
 version = "0.2.2"
 description = "A simple Firebase Remote Config binding for Pydantic"
@@ -12,6 +15,11 @@ dependencies = [
     "pydantic[email]>=2.11.10",
     "requests>=2.32.5",
 ]
+
+[project.urls]
+Documentation = "https://github.com/opsie-dev/pydantic-firebase-remoteconfig"
+Repository = "https://github.com/opsie-dev/pydantic-firebase-remoteconfig"
+Issues = "https://github.com/opsie-dev/pydantic-firebase-remoteconfig/issues"
 
 [dependency-groups]
 dev = [
