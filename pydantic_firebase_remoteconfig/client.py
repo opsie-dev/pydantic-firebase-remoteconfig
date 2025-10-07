@@ -20,9 +20,9 @@ class FirebaseRemoteConfigClient:
         credentials: Credentials
         project: str
         headers: dict[str, str] = dict()
-        credentials, project = default()
-        credentials.refresh(Request())
-        credentials.apply(headers)
+        credentials, project = default()  # type: ignore
+        credentials.refresh(Request())  # type: ignore
+        credentials.apply(headers)  # type: ignore
         transport = AsyncClient(
             base_url=DEFAULT_API_ENDPOINT,
             headers=headers,
@@ -41,4 +41,7 @@ class FirebaseRemoteConfigClient:
         endpoint = f"/v1/projects/{self._project}/namespaces/{FirebaseNamespace.FIREBASE_SERVER.value}/remoteConfig"
         response = await self._transport.get(endpoint)
         response.raise_for_status()
-        return response.json()
+        template = response.json()
+        if not isinstance(template, dict):
+            raise ValueError(f"Invalid response from Firebase: {template}")
+        return template

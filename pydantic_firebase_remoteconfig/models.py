@@ -111,6 +111,8 @@ class BaseRemoteConfigModel(BaseModel):
         rc = _RemoteConfig(**template)
         parameters = rc.parameters
         if cls.rc_group:
+            if rc.parameter_groups is None:
+                raise ValidationError(f"No parameter group found remotely")
             parameter_group = rc.parameter_groups.get(cls.rc_group)
             if parameter_group is None:
                 raise ValidationError(f"Unknown remote parameter group {cls.rc_group}")
