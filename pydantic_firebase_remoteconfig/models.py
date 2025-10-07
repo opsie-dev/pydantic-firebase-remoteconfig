@@ -107,7 +107,7 @@ class BaseRemoteConfigModel(BaseModel):
 
     model_config = RemoteConfigConfigDict()
 
-    rc_version: RemoteConfigVersion
+    rc_version: RemoteConfigVersion | None = None
 
     @classmethod
     def _build_field_values(
