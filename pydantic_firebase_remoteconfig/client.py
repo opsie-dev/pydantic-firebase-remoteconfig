@@ -16,6 +16,22 @@ class FirebaseNamespace(StrEnum):
 
 class FirebaseRemoteConfigClient:
     @classmethod
+    def from_credentials(
+        cls,
+        credentials: Credentials,
+        project: str,
+    ) -> "FirebaseRemoteConfigClient":
+        headers: dict[str, str] = dict()
+        if not credentials.valid:
+            credentials.refresh(Request())  # type: ignore
+            credentials.apply(headers)  # type: ignore
+        transport = AsyncClient(
+            base_url=DEFAULT_API_ENDPOINT,
+            headers=headers,
+        )
+        return cls(project, transport)
+
+    @classmethod
     def from_environment(cls) -> "FirebaseRemoteConfigClient":
         credentials: Credentials
         project: str
