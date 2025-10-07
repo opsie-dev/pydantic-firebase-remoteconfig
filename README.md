@@ -33,3 +33,19 @@ config = await MyRemoteConfigModel.model_validate_remoteconfig()
 print(config.foo)
 # bar
 ```
+
+### With custom model configuration
+
+> TBD
+
+#### Key prefix
+
+> TBD
+
+#### Parameter group selection
+
+> TBD
+
+#### Complex model using nested delimiter
+
+> TBD

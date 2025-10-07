@@ -37,6 +37,10 @@ class FirebaseRemoteConfigClient:
         self._project = project
         self._transport = transport
 
+    @property
+    def project(self) -> str:
+        return self._project
+
     async def get_server_remote_template(self) -> dict[str, Any]:
         endpoint = f"/v1/projects/{self._project}/namespaces/{FirebaseNamespace.FIREBASE_SERVER.value}/remoteConfig"
         response = await self._transport.get(endpoint)

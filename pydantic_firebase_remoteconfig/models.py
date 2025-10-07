@@ -1,6 +1,5 @@
 from enum import StrEnum
 from typing import Any
-from typing import ClassVar
 from typing import Self
 
 from pydantic import BaseModel
@@ -9,6 +8,7 @@ from pydantic import EmailStr
 from pydantic import ValidationError
 from pydantic import model_validator
 from pydantic.alias_generators import to_camel
+from pydantic_core import from_json
 
 from .client import FirebaseRemoteConfigClient
 
@@ -94,10 +94,51 @@ class _RemoteConfig(_BaseCamelModel):
         return self
 
 
+class RemoteConfigConfigDict(ConfigDict, total=False):
+    rc_group: str | None
+    rc_nested_delimiter: str | None
+    rc_prefix: str | None
+
+
 class BaseRemoteConfigModel(BaseModel):
-    rc_group: ClassVar[str | None] = None
-    rc_prefix: ClassVar[str | None] = None
+    """
+    TBD
+    """
+
+    model_config = RemoteConfigConfigDict()
+
     rc_version: RemoteConfigVersion
+
+    @classmethod
+    def _build_field_values(
+        cls, parameters: dict[str, _RemoteConfigParameter]
+    ) -> dict[str, Any]:
+        fields: dict[str, Any] = dict()
+        rc_nested_delimiter: str | None = cls.model_config.get("rc_nested_delimiter")
+        rc_prefix: str | None = cls.model_config.get("rc_prefix")
+        for key, parameter in parameters.items():
+            field_name = key
+            if rc_prefix is not None and field_name.startswith(rc_prefix):
+                field_name = field_name[len(rc_prefix) :]
+            if parameter.value_type == RemoteConfigValueType.JSON:
+                fields[field_name] = from_json(parameter.default_value.value)
+                continue
+            if rc_nested_delimiter is None:
+                fields[field_name] = parameter.default_value.value
+            else:
+                path = field_name.split(rc_nested_delimiter)
+                ptr = 0
+                current = fields
+                while ptr < len(path):
+                    if path[ptr] not in current:
+                        if ptr == len(path) - 1:
+                            current[path[ptr]] = parameter.default_value.value
+                        else:
+                            current[path[ptr]] = dict()
+                    if ptr != len(path) - 1:
+                        current = current[path[ptr]]
+                    ptr += 1
+        return fields
 
     @classmethod
     async def model_validate_remoteconfig(
@@ -109,23 +150,18 @@ class BaseRemoteConfigModel(BaseModel):
             rc_client = FirebaseRemoteConfigClient.from_environment()
         template = await rc_client.get_server_remote_template()
         rc = _RemoteConfig(**template)
+        rc_group: str | None = cls.model_config.get("rc_group")
         parameters = rc.parameters
-        if cls.rc_group:
+        if rc_group:
             if rc.parameter_groups is None:
                 raise ValidationError(f"No parameter group found remotely")
-            parameter_group = rc.parameter_groups.get(cls.rc_group)
+            parameter_group = rc.parameter_groups.get(rc_group)
             if parameter_group is None:
-                raise ValidationError(f"Unknown remote parameter group {cls.rc_group}")
+                raise ValidationError(f"Unknown remote parameter group {rc_group}")
             parameters = parameter_group.parameters
         if parameters is None:
-            raise ValidationError(f"Unknown remote parameter group {cls.rc_group}")
-        fields: dict[str, Any] = dict()
-        for key, parameter in parameters.items():
-            field_name = key
-            if cls.rc_prefix is not None and field_name.startswith(cls.rc_prefix):
-                field_name = field_name[len(cls.rc_prefix) :]
-            fields[field_name] = parameter.default_value.value
+            raise ValidationError(f"Unknown remote parameter group {rc_group}")
         return cls(
             rc_version=rc.version,
-            **fields,
+            **cls._build_field_values(parameters),
         )
