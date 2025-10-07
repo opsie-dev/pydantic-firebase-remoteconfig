@@ -36,16 +36,62 @@ print(config.foo)
 
 ### With custom model configuration
 
-> TBD
+A custom model configuration dict is also available.
 
 #### Key prefix
 
-> TBD
+```python
+from pydantic_firebase_remoteconfig import RemoteConfigConfigDict
+
+
+class MyRemoteConfigModel(BaseRemoteConfigModel):
+    model_config = RemoteConfigConfigDict(
+        # This would evaluate remote configuration
+        # variable `myprefix_foo`.
+        rc_prefix="myprefix_",
+    )
+    foo: str
+```
 
 #### Parameter group selection
 
-> TBD
+
+```python
+from pydantic_firebase_remoteconfig import RemoteConfigConfigDict
+
+
+class MyRemoteConfigModel(BaseRemoteConfigModel):
+    model_config = RemoteConfigConfigDict(
+        # This would evaluate remote configuration
+        # variable `foo` under group `my_group`.
+        rc_group="my_group",
+    )
+    foo: str
+```
 
 #### Complex model using nested delimiter
 
-> TBD
+Using the same pattern than [pydantic_settings](), nested
+configuration can be evaluated, based on either:
+
+- A submodel is designed as a JSON parameter on RemoteConfig.
+- A submodel is designed as combinaison of flat value with delimiter.
+
+```python
+from pydantic import BaseModel
+from pydantic_firebase_remoteconfig import RemoteConfigConfigDict
+
+
+class MyNestedConfig(BaseModel):
+    foo: str
+
+
+class MyRemoteConfigModel(BaseRemoteConfigModel):
+    model_config = RemoteConfigConfigDict(
+        # This would evaluate remote configuration
+        # variable `nested_config__foo`.
+        rc_nested_delimiter="__",
+    )
+
+    nested_config: MyNestedConfig
+```
