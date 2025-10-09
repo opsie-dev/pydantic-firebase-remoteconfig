@@ -5,6 +5,7 @@ from httpx import AsyncClient
 from google.auth import default
 from google.auth.credentials import Credentials
 from google.auth.transport.requests import Request
+from pydantic_core import to_json
 
 DEFAULT_API_ENDPOINT = "https://firebaseremoteconfig.googleapis.com"
 
@@ -57,11 +58,35 @@ class FirebaseRemoteConfigClient:
     def project(self) -> str:
         return self._project
 
-    async def get_server_remote_template(self) -> dict[str, Any]:
+    async def get_server_remote_template(self) -> tuple[dict[str, Any], str]:
         endpoint = f"/v1/projects/{self._project}/namespaces/{FirebaseNamespace.FIREBASE_SERVER.value}/remoteConfig"
         response = await self._transport.get(endpoint)
         response.raise_for_status()
+        etag = response.headers.get("ETag")
         template = response.json()
         if not isinstance(template, dict):
             raise ValueError(f"Invalid response from Firebase: {template}")
-        return template
+        return template, etag
+
+    async def update_server_remote_template(
+        self,
+        template: bytes | dict[str, Any] | str,
+        *,
+        etag: str | None = None,
+    ) -> None:
+        endpoint = f"/v1/projects/{self._project}/namespaces/{FirebaseNamespace.FIREBASE_SERVER.value}/remoteConfig"
+        headers = dict()
+        if etag is not None:
+            headers.update(
+                {
+                    "If-Match": etag,
+                },
+            )
+        if isinstance(template, dict):
+            template = to_json(template)
+        response = await self._transport.put(
+            endpoint,
+            headers=headers,
+            content=template,
+        )
+        response.raise_for_status()

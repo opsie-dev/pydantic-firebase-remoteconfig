@@ -107,6 +107,7 @@ class BaseRemoteConfigModel(BaseModel):
 
     model_config = RemoteConfigConfigDict()
 
+    rc_etag: str | None = None
     rc_version: RemoteConfigVersion | None = None
 
     @classmethod
@@ -148,8 +149,8 @@ class BaseRemoteConfigModel(BaseModel):
     ) -> Self:
         if rc_client is None:
             rc_client = FirebaseRemoteConfigClient.from_environment()
-        template = await rc_client.get_server_remote_template()
-        rc = _RemoteConfig(**template)
+        rc_template, rc_etag = await rc_client.get_server_remote_template()
+        rc = _RemoteConfig(**rc_template)
         rc_group: str | None = cls.model_config.get("rc_group")
         parameters = rc.parameters
         if rc_group:
@@ -162,6 +163,7 @@ class BaseRemoteConfigModel(BaseModel):
         if parameters is None:
             raise ValidationError(f"Unknown remote parameter group {rc_group}")
         return cls(
+            rc_etag=rc_etag,
             rc_version=rc.version,
             **cls._build_field_values(parameters),
         )
