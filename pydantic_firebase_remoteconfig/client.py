@@ -74,7 +74,9 @@ class FirebaseRemoteConfigClient:
         *,
         etag: str | None = None,
     ) -> None:
-        endpoint = f"/v1/projects/{self._project}/namespaces/{FirebaseNamespace.FIREBASE_SERVER.value}/remoteConfig",
+        endpoint = (
+            f"/v1/projects/{self._project}/namespaces/{FirebaseNamespace.FIREBASE_SERVER.value}/remoteConfig",
+        )
         headers = dict()
         if etag is not None:
             headers.update(
