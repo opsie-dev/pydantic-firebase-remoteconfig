@@ -3,7 +3,7 @@ authors = [
   {name = "Félix Voituret", email = "fvoituret@opsie.dev"},
 ]
 name = "pydantic-firebase-remoteconfig"
-version = "0.2.2"
+version = "0.3.0"
 description = "A simple Firebase Remote Config binding for Pydantic"
 readme = "README.md"
 requires-python = ">=3.12"
